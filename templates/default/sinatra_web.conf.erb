@@ -1,0 +1,9 @@
+server {
+   listen 80;
+   server_name localhost;
+
+   location / {
+      root /home/ubuntu/sinatra_webservices/public;
+      passenger_enabled on;
+   }
+}
