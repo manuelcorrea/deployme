@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-user = "vagrant"
+user = "ubuntu"
 
 package 'git'
 
@@ -22,17 +22,20 @@ cookbook_file "/tmp/.ssh/wrap-ssh4git.sh" do
   mode '0700'
 end
 
-
-deploy "/home/ubuntu/sinatra_webservices" do
-  repo "https://github.com/manuelcorrea/sinatra_webservices.git"
+git '/home/ubuntu/sinatra_webservices' do
+  repository "https://github.com/manuelcorrea/sinatra_webservices.git"
   revision "master"
+  action :sync
+  ssh_wrapper "/tmp/.ssh/wrap-ssh4git.sh"
   user user
-  environment "RAILS_ENV" => "production"
-  keep_releases 10
-  action :deploy
-  restart_command "touch tmp/restart.txt"
-  git_ssh_wrapper "/tmp/.ssh/wrap-ssh4git.sh"
-  notifies :restart, "service[foo]"
+  group user
+  notifies :run, "bash[install_app]", :immediately
+end
+
+directory '/home/ubuntu/sinatra_webservices/tmp' do
+  action :create
+  owner user
+  group user
 end
 
 bash "install_app" do
@@ -44,6 +47,15 @@ bash "install_app" do
     gem install bundler
     bundle install --deployment
   EOH
+end
+
+
+
+file "/home/ubuntu/sinatra_webservices/tmp/restart.txt" do
+  action  :create
+  subscribes :touch, "git[/home/ubuntu/sinatra_webservices]"
+  owner user
+  group user
 end
 
 template "/opt/nginx/sites-available/sinatra_web.conf" do
