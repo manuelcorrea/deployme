@@ -49,8 +49,6 @@ bash "install_app" do
   EOH
 end
 
-
-
 file "/home/ubuntu/sinatra_webservices/tmp/restart.txt" do
   action  :create
   subscribes :touch, "git[/home/ubuntu/sinatra_webservices]"
